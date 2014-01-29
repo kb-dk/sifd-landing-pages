@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>VIAF Search</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <style>
+        .ui-autocomplete-loading {
+            background: white url('img/ui-anim_basic_16x16.gif') right center no-repeat;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function() {
+            function log( message ) {
+                $( "<a href='' onclick='getRDF(" + message + ")' ></a>" ).text( message ).prependTo( "#log" );
+                $( "#log" ).scrollTop( 0 );
+            }
+            $( "#person" ).autocomplete({
+                source: function( request, response ) {
+                    $.ajax({
+                        url: "http://viaf.org/viaf/AutoSuggest?",
+                        dataType: "jsonp",
+                        data: {
+                            query: request.term,
+                            featureClass: "P",
+                            style: "full",
+                            maxRows: 12,
+                            name_startsWith: request.term
+                        },
+                        success: function( data ) {
+                            response( $.map( data.result, function( term ) {
+                                return {
+                                    label: term.term + " " + term.viafid,
+                                    value: term.term
+                                }
+                            }));
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    log( ui.item ?
+                            ui.item.label :
+                            "Nothing selected, input was " + this.value);
+                },
+                open: function() {
+                    $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+                },
+                close: function() {
+                    $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>VIAF Search Capabilities</h1><br>
+Names<br>
+Personal Names<br>
+Corporate names<br>
+Preferred Names<br>
+Geographic Names (only jurisdictional names so far)<br>
+Uniform Titles (Works)<br>
+Uniform Titles (Expressions)<br>
+Title<br>
+Source<br><br>
+<div class="ui-widget">
+    <label for="person">VIAF Search: </label>
+    <input id="person">
+</div>
+
+<div class="ui-widget" style="margin-top:2em; font-family:Arial">
+    Result:
+    <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
+</div>
+</body>
+</html>

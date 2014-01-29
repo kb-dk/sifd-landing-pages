@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>LoC Subject Search</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <style>
+        .ui-autocomplete-loading {
+            background: white url('img/ui-anim_basic_16x16.gif') right center no-repeat;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function() {
+            function log( message ) {
+                $( "<a href='' onclick='getRDF(" + message + ")' ></a>" ).text( message ).prependTo( "#log" );
+                $( "#log" ).scrollTop( 0 );
+            }
+            $( "#person" ).autocomplete({
+                source: function( request, response ) {
+                    $.ajax({
+                        url: "http://id.loc.gov/search/?q=cs%3Ahttp%3A%2F%2Fid.loc.gov%2Fauthorities%2Fsubjects",
+                        dataType: "jsonp",
+                        data: {
+                            q: request.term,
+                            format: "jsonp",
+                            featureClass: "P",
+                            style: "full",
+                            maxRows: 12,
+                            name_startsWith: request.term
+                        },
+                        success: function( data ) {
+                            response( $.map( data, function( data ) {
+                                if (jQuery.type(data) === "array" && data.length > 0 && data[0] == ("atom:entry")) {
+                                    return {
+                                        label: data[2][2],
+                                        value: data[2][2]
+                                    }
+                                }
+                            }));
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    log( ui.item ?
+                            ui.item.label :
+                            "Nothing selected, input was " + this.value);
+                },
+                open: function() {
+                    $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+                },
+                close: function() {
+                    $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+
+<div class="ui-widget">
+    <label for="person">Library of Congress Subject Heading Search: </label>
+    <input id="person">
+</div>
+
+<div class="ui-widget" style="margin-top:2em; font-family:Arial">
+    Result:
+    <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
+</div>
+</body>
+</html>
